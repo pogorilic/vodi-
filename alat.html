@@ -1,0 +1,150 @@
+<!DOCTYPE html>
+<html lang="hr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>MarAzul · WhatsApp alat</title>
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@600&family=Jost:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+  :root{--navy:#14304F;--gold:#B99354;--cream:#F3EEE3;--card:#FBF8F1;--ink:#22303D;--muted:#6B7683;--line:#E6DECB}
+  *{margin:0;padding:0;box-sizing:border-box}
+  body{font-family:'Jost',sans-serif;background:var(--cream);color:var(--ink);padding:20px;line-height:1.5}
+  .wrap{max-width:480px;margin:0 auto}
+  h1{font-family:'Cormorant Garamond',serif;color:var(--navy);font-size:1.8rem;text-align:center}
+  .sub{text-align:center;font-size:.7rem;letter-spacing:.3em;text-transform:uppercase;color:var(--gold);font-weight:600;margin:2px 0 22px}
+  .card{background:var(--card);border:1px solid var(--line);border-radius:18px;padding:20px;margin-bottom:14px}
+  label{display:block;font-size:.7rem;font-weight:600;letter-spacing:.14em;text-transform:uppercase;color:var(--muted);margin:12px 0 4px}
+  label:first-child{margin-top:0}
+  input,select,textarea{width:100%;padding:11px 12px;border:1px solid var(--line);border-radius:12px;background:#fff;font-family:'Jost',sans-serif;font-size:.95rem;color:var(--ink)}
+  input:focus,select:focus,textarea:focus{outline:2px solid var(--gold);border-color:var(--gold)}
+  .row2{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+  .row3{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+  textarea{min-height:170px;resize:vertical;font-size:.9rem}
+  .btn{width:100%;margin-top:10px;border:none;cursor:pointer;font-family:'Jost',sans-serif;font-size:.85rem;font-weight:600;letter-spacing:.1em;text-transform:uppercase;padding:13px;border-radius:12px}
+  .btn.navy{background:var(--navy);color:#fff}
+  .btn.gold{background:var(--gold);color:#fff}
+  .btn.ghost{background:#fff;border:1px solid var(--line);color:var(--navy)}
+  .linkbox{font-size:.72rem;color:var(--muted);word-break:break-all;background:#EFE8D8;border-radius:10px;padding:8px 10px;margin-top:10px}
+  #toast{position:fixed;left:50%;bottom:24px;transform:translateX(-50%);background:var(--navy);color:#fff;font-size:.82rem;padding:9px 18px;border-radius:999px;opacity:0;transition:opacity .25s;pointer-events:none}
+  #toast.show{opacity:1}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <h1>WhatsApp dobrodošlica</h1>
+  <div class="sub">MarAzul · interni alat</div>
+
+  <div class="card">
+    <div class="row3">
+      <div>
+        <label>Apartman</label>
+        <select id="apt">
+          <option>A1</option><option>A2</option><option>A3</option><option>A4</option>
+          <option>A5</option><option>A6</option><option>A7</option>
+        </select>
+      </div>
+      <div>
+        <label>Jezik gosta</label>
+        <select id="lng">
+          <option value="hr">Hrvatski</option>
+          <option value="en">English</option>
+          <option value="de">Deutsch</option>
+        </select>
+      </div>
+    </div>
+    <label>Ime gosta</label>
+    <input type="text" id="ime" placeholder="npr. Ana Müller">
+    <div class="row2">
+      <div>
+        <label>Dolazak</label>
+        <input type="date" id="d1">
+      </div>
+      <div>
+        <label>Odlazak</label>
+        <input type="date" id="d2">
+      </div>
+    </div>
+    <button class="btn navy" onclick="gen()">Generiraj poruku</button>
+  </div>
+
+  <div class="card" id="out" style="display:none">
+    <label>Poruka (možeš je urediti prije slanja)</label>
+    <textarea id="msg"></textarea>
+    <div class="linkbox" id="linkShow"></div>
+    <button class="btn gold" onclick="openWA()">Otvori WhatsApp</button>
+    <button class="btn ghost" onclick="copyMsg()">Kopiraj poruku</button>
+  </div>
+</div>
+<div id="toast"></div>
+
+<script>
+const BASE = "https://marazul-apartments.netlify.app/";
+
+const T = {
+  hr: (n, a, d1, d2, link) =>
+`Pozdrav ${n}! 👋
+Dobro došli u MarAzul Apartments — Povljana, otok Pag.
+Vaš apartman: ${a}
+Dolazak: ${d1} · Odlazak: ${d2}
+Pripremili smo Vaš osobni digitalni vodič — Wi-Fi, upute za dolazak, plaže, restorani i sve preporuke na jednom mjestu:
+${link}
+Vaši domaćini,
+MarAzul · Powered by PAG 44°`,
+  en: (n, a, d1, d2, link) =>
+`Hello ${n}! 👋
+Welcome to MarAzul Apartments — Povljana, Pag island.
+Your apartment: ${a}
+Arrival: ${d1} · Departure: ${d2}
+We've prepared your personal digital guest guide — Wi-Fi, arrival info, beaches, restaurants and all our local tips in one place:
+${link}
+Your hosts,
+MarAzul · Powered by PAG 44°`,
+  de: (n, a, d1, d2, link) =>
+`Hallo ${n}! 👋
+Willkommen in den MarAzul Apartments — Povljana, Insel Pag.
+Ihr Apartment: ${a}
+Anreise: ${d1} · Abreise: ${d2}
+Wir haben Ihren persönlichen digitalen Gästeführer vorbereitet — WLAN, Anreiseinfos, Strände, Restaurants und alle unsere Tipps an einem Ort:
+${link}
+Ihre Gastgeber,
+MarAzul · Powered by PAG 44°`
+};
+
+function fmt(d){
+  if(!d) return "—";
+  const [y,m,dd] = d.split("-");
+  return `${parseInt(dd)}.${parseInt(m)}.${y}.`;
+}
+function toast(t){
+  const el = document.getElementById("toast");
+  el.textContent = t; el.classList.add("show");
+  setTimeout(()=>el.classList.remove("show"), 2000);
+}
+function gen(){
+  const apt = document.getElementById("apt").value;
+  const lng = document.getElementById("lng").value;
+  const ime = document.getElementById("ime").value.trim();
+  const d1 = document.getElementById("d1").value;
+  const d2 = document.getElementById("d2").value;
+  if(!ime || !d1 || !d2){ toast("Upiši ime i oba datuma"); return; }
+  const params = new URLSearchParams({apt, dolazak: d1, odlazak: d2, ime, jezik: lng});
+  const link = BASE + "?" + params.toString();
+  const first = ime.split(" ")[0];
+  document.getElementById("msg").value = T[lng](first, apt, fmt(d1), fmt(d2), link);
+  document.getElementById("linkShow").textContent = link;
+  document.getElementById("out").style.display = "block";
+  document.getElementById("out").scrollIntoView({behavior:"smooth"});
+}
+function openWA(){
+  const msg = document.getElementById("msg").value;
+  window.open("https://wa.me/?text=" + encodeURIComponent(msg), "_blank");
+}
+async function copyMsg(){
+  try{
+    await navigator.clipboard.writeText(document.getElementById("msg").value);
+    toast("Kopirano ✓");
+  }catch(e){ toast("Označi tekst i kopiraj ručno"); }
+}
+</script>
+</body>
+</html>
